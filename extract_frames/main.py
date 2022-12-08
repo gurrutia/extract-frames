@@ -12,16 +12,40 @@ def valid_path(p: str) -> str:
     return p
 
 
-def positive_int(s: str) -> int:
+def positive_int(s: str, allow_zero=False, msg=None) -> int:
     try:
-        v = int(s)
+        n = int(s)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"Expected integer, got {s!r}")
+        msg = f"Expected integer, got {s!r}" if msg is None else msg
+        raise argparse.ArgumentTypeError(msg)
 
-    if v <= 0:
-        raise argparse.ArgumentTypeError(f"Expected positive integer, got {v}")
+    if allow_zero and n < 0 or not allow_zero and n <= 0:
+        msg = f"Expected positive integer, got {n}" if msg is None else msg
+        raise argparse.ArgumentTypeError(msg)
 
-    return v
+    return n
+
+
+def timestamp_as_seconds(ts: str) -> int:
+    error_msg = f"Invalid timestamp, got {ts!r}"
+    if ":" in ts:
+        seconds = 0
+        for value in ts.split(":"):
+            if len(value) > 2:
+                raise argparse.ArgumentTypeError(error_msg)
+
+            n = positive_int(value, allow_zero=True, msg=error_msg)
+            if n >= 60:
+                raise argparse.ArgumentTypeError(error_msg)
+
+            try:
+                seconds = seconds * 60 + int(value, 10)
+            except ValueError:
+                raise argparse.ArgumentTypeError(error_msg)
+    else:
+        seconds = positive_int(ts, allow_zero=True, msg=error_msg)
+
+    return seconds
 
 
 def main() -> None:
@@ -36,6 +60,22 @@ def main() -> None:
         default=1,
         metavar="",
         help="split every n frame(s)",
+    )
+    parser.add_argument(
+        "-s",
+        "--start",
+        type=timestamp_as_seconds,
+        default=0,
+        metavar="",
+        help="start timestamp, or n representing seconds from start",
+    )
+    parser.add_argument(
+        "-e",
+        "--end",
+        type=timestamp_as_seconds,
+        default=0,
+        metavar="",
+        help="end timestamp, or n representing seconds from start",
     )
     args = parser.parse_args()
 
