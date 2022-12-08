@@ -2,6 +2,22 @@ import argparse
 import os
 
 
+from dataclasses import dataclass
+
+
+@dataclass
+class Video:
+    path: str
+    dirname: str
+    basename: str
+    filename: str
+    framecount: int
+    fps: int
+    splitby: int
+    start: int
+    end: int
+
+
 def valid_path(p: str) -> str:
     if not os.path.isfile(p):
         raise argparse.ArgumentTypeError(f"File not found, got {p!r}")
