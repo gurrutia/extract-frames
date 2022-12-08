@@ -60,6 +60,7 @@ def main() -> None:
         default=1,
         metavar="",
         help="split every n frame(s)",
+        dest="splitby"
     )
     parser.add_argument(
         "-s",
