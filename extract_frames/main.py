@@ -1,8 +1,8 @@
 import argparse
 import os
-
-
 from dataclasses import dataclass
+
+import cv2
 
 
 @dataclass
@@ -63,13 +63,25 @@ def timestamp_in_seconds(ts: str) -> int:
 
     return seconds
 
+
+def video_details(videopath: str) -> tuple[int, int]:
+    video_capture = cv2.VideoCapture(videopath)
+    if not video_capture.isOpened():
+        raise IOError("Unable to open video, got path '{videopath}'")
+
+    framecount = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = int(video_capture.get(cv2.CAP_PROP_FPS))
+
+    return framecount, fps
+
+
 def build_video_metadata(args: argparse.Namespace) -> Video:
     dirname = os.path.dirname(args.path)
     basename = os.path.basename(args.path)
     filename = os.path.splitext(basename)[0]
     framecount, fps = video_details(args.path)
     start, end = validate_start_end(args, framecount, fps)
-    
+
     return Video(
         path=args.path,
         dirname=dirname,
@@ -79,7 +91,7 @@ def build_video_metadata(args: argparse.Namespace) -> Video:
         fps=fps,
         splitby=args.splitby,
         start=start,
-        end=end
+        end=end,
     )
 
 
@@ -95,7 +107,7 @@ def main() -> None:
         default=1,
         metavar="",
         help="split every n frame(s)",
-        dest="splitby"
+        dest="splitby",
     )
     parser.add_argument(
         "-s",
