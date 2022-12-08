@@ -1,7 +1,7 @@
 import argparse
 import os
 from dataclasses import dataclass
-
+import sys
 import cv2
 
 
@@ -67,7 +67,7 @@ def timestamp_in_seconds(ts: str) -> int:
 def video_details(videopath: str) -> tuple[int, int]:
     video_capture = cv2.VideoCapture(videopath)
     if not video_capture.isOpened():
-        raise IOError("Unable to open video, got path '{videopath}'")
+        raise IOError(f"Unable to open video, got '{videopath}'")
 
     framecount = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(video_capture.get(cv2.CAP_PROP_FPS))
@@ -75,12 +75,34 @@ def video_details(videopath: str) -> tuple[int, int]:
     return framecount, fps
 
 
+def validate_start_end(
+    args: argparse.Namespace, framecount: int, fps: int
+) -> tuple[int, int]:
+    start = args.start * fps if args.start != 0 else 0
+    if start > framecount:
+        raise ValueError(f"Start timestamp exceeds video length, got {args.start}")
+
+    end = args.end * fps if args.end is not None else framecount
+    end = framecount if end > framecount else end
+    if end == start:
+        raise ValueError(f"End timestamp equal to start timestamp, got {args.end}")
+    if end < start:
+        raise ValueError(f"End timestamp prior to start timestamp, got {args.end}")
+
+    return start, end
+
+
 def build_video_metadata(args: argparse.Namespace) -> Video:
     dirname = os.path.dirname(args.path)
     basename = os.path.basename(args.path)
     filename = os.path.splitext(basename)[0]
     framecount, fps = video_details(args.path)
-    start, end = validate_start_end(args, framecount, fps)
+
+    try:
+        start, end = validate_start_end(args, framecount, fps)
+    except ValueError as e:
+        print(f"TimestampError: {e}")
+        sys.exit(1)
 
     return Video(
         path=args.path,
@@ -126,6 +148,7 @@ def main() -> None:
         help="end timestamp, or n representing seconds from start",
     )
     args = parser.parse_args()
+    video_metadata = build_video_metadata(args)
 
 
 if __name__ == "__main__":
