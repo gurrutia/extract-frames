@@ -1,9 +1,11 @@
 import argparse
+import math
 import os
 import sys
 from dataclasses import dataclass
 
 import cv2
+from tqdm import tqdm
 
 
 @dataclass
@@ -72,6 +74,7 @@ def video_details(videopath: str) -> tuple[int, int]:
 
     framecount = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(video_capture.get(cv2.CAP_PROP_FPS))
+    video_capture.release()
 
     return framecount, fps
 
@@ -119,16 +122,49 @@ def build_video_metadata(args: argparse.Namespace) -> Video:
 
 
 def make_framesdir(video: Video) -> str:
-    frames_dirname = f"{video.filename}_frames_splitby({video.splitby})"
+    frame_text = "frame" if video.splitby == 1 else "frames"
+    frames_dirname = f"{video.filename}_frames_split_every_{video.splitby}_{frame_text}_between_{video.start}_{video.end}"
     framesdir = os.path.join(video.dirname, frames_dirname)
     if os.path.exists(framesdir):
         i = 1
         while os.path.exists(framesdir):
-            dir = os.path.join(video.dirname, f"{frames_dirname} ({i})")
+            framesdir = os.path.join(video.dirname, f"{frames_dirname} ({i})")
+            i += 1
 
     os.mkdir(framesdir)
 
     return framesdir
+
+
+def extract_frames(video: Video) -> None:
+    frames_expected = math.ceil((video.end - video.start) / video.splitby)
+    next_frame = video.start
+    video_capture = cv2.VideoCapture(video.path)
+    video_capture.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
+    framesdir = make_framesdir(video)
+
+    with tqdm(total=frames_expected) as pbar:
+        i = 1
+        while video_capture.isOpened():
+            success, img = video_capture.read()
+            if success:
+                imgpath = os.path.join(framesdir, f"frame{next_frame}.jpg")
+                cv2.imwrite(imgpath, img)
+                pbar.update()
+
+                if frames_expected == i:
+                    video_capture.release()
+                    break
+                i += 1
+
+                next_frame += video.splitby
+                if video.splitby != 1:
+                    video_capture.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
+            else:
+                video_capture.release()
+                break
+
+    print(f"\nFrames directory: {framesdir}")
 
 
 def main() -> None:
@@ -157,12 +193,13 @@ def main() -> None:
         "-e",
         "--end",
         type=timestamp_in_seconds,
-        default=0,
         metavar="",
         help="end timestamp, or n representing seconds from start",
     )
     args = parser.parse_args()
     video_metadata = build_video_metadata(args)
+    print(video_metadata)
+    extract_frames(video_metadata)
 
 
 if __name__ == "__main__":
