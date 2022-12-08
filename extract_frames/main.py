@@ -1,7 +1,8 @@
 import argparse
 import os
-from dataclasses import dataclass
 import sys
+from dataclasses import dataclass
+
 import cv2
 
 
@@ -115,6 +116,19 @@ def build_video_metadata(args: argparse.Namespace) -> Video:
         start=start,
         end=end,
     )
+
+
+def make_framesdir(video: Video) -> str:
+    frames_dirname = f"{video.filename}_frames_splitby({video.splitby})"
+    framesdir = os.path.join(video.dirname, frames_dirname)
+    if os.path.exists(framesdir):
+        i = 1
+        while os.path.exists(framesdir):
+            dir = os.path.join(video.dirname, f"{frames_dirname} ({i})")
+
+    os.mkdir(framesdir)
+
+    return framesdir
 
 
 def main() -> None:
