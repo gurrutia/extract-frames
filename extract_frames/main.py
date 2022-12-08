@@ -26,7 +26,7 @@ def positive_int(s: str, allow_zero=False, msg=None) -> int:
     return n
 
 
-def timestamp_as_seconds(ts: str) -> int:
+def timestamp_in_seconds(ts: str) -> int:
     error_msg = f"Invalid timestamp, got {ts!r}"
     if ":" in ts:
         seconds = 0
@@ -64,7 +64,7 @@ def main() -> None:
     parser.add_argument(
         "-s",
         "--start",
-        type=timestamp_as_seconds,
+        type=timestamp_in_seconds,
         default=0,
         metavar="",
         help="start timestamp, or n representing seconds from start",
@@ -72,7 +72,7 @@ def main() -> None:
     parser.add_argument(
         "-e",
         "--end",
-        type=timestamp_as_seconds,
+        type=timestamp_in_seconds,
         default=0,
         metavar="",
         help="end timestamp, or n representing seconds from start",
