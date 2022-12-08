@@ -63,6 +63,25 @@ def timestamp_in_seconds(ts: str) -> int:
 
     return seconds
 
+def build_video_metadata(args: argparse.Namespace) -> Video:
+    dirname = os.path.dirname(args.path)
+    basename = os.path.basename(args.path)
+    filename = os.path.splitext(basename)[0]
+    framecount, fps = video_details(args.path)
+    start, end = validate_start_end(args, framecount, fps)
+    
+    return Video(
+        path=args.path,
+        dirname=dirname,
+        basename=basename,
+        filename=filename,
+        framecount=framecount,
+        fps=fps,
+        splitby=args.splitby,
+        start=start,
+        end=end
+    )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
