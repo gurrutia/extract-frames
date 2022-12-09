@@ -198,7 +198,6 @@ def main() -> None:
     )
     args = parser.parse_args()
     video_metadata = build_video_metadata(args)
-    print(video_metadata)
     extract_frames(video_metadata)
 
 
