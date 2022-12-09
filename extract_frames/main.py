@@ -170,7 +170,7 @@ def extract_frames(video: Video) -> None:
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
     parser = argparse.ArgumentParser(
-        prog="extract-frames", description="Extract frames from video as .jpg image"
+        prog="extract-frames", description="Extract frames from video as .jpg images."
     )
     parser.add_argument("path", type=valid_path, help="path to video with extension")
     parser.add_argument(
