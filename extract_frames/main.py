@@ -3,6 +3,7 @@ import math
 import os
 import sys
 from dataclasses import dataclass
+from typing import Optional, Sequence
 
 import cv2
 from tqdm import tqdm
@@ -167,7 +168,7 @@ def extract_frames(video: Video) -> None:
     print(f"\nFrames directory: {framesdir}")
 
 
-def main() -> None:
+def main(argv: Optional[Sequence[str]] = None) -> None:
     parser = argparse.ArgumentParser(
         prog="extract-frames", description="Extract frames from video as .jpg image"
     )
@@ -196,7 +197,7 @@ def main() -> None:
         metavar="",
         help="end timestamp, or n representing seconds from start",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     video_metadata = build_video_metadata(args)
     extract_frames(video_metadata)
 
