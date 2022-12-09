@@ -138,8 +138,8 @@ def make_framesdir(video: Video) -> str:
 
 def extract_frames(video: Video) -> None:
     frames_expected = math.ceil((video.end - video.start) / video.splitby)
-    next_frame = video.start
     video_capture = cv2.VideoCapture(video.path)
+    next_frame = video.start
     video_capture.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
     framesdir = make_framesdir(video)
 
